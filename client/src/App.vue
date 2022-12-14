@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
-const canvas = ref(null)
+const canvas = ref<HTMLCanvasElement>()
 
 const form = ref({
   name: null,
@@ -12,7 +12,15 @@ const isPlaying = ref(false)
 const players = ref([])
 
 onMounted(() => {
+  if (!canvas.value) {
+    return
+  }
+
   const ctx = canvas.value.getContext('2d')
+
+  if (ctx === null) {
+    return
+  }
 
   canvas.value.width = window.innerWidth
   canvas.value.height = window.innerHeight
@@ -36,7 +44,7 @@ onMounted(() => {
   ctx.stroke()
 })
 
-const submit = async (e) => {
+const submit = (e: Event) => {
   console.log('submitted')
 }
 </script>
