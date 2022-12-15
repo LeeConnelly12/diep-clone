@@ -1,6 +1,6 @@
-import express from "express";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
+import http from "http";
 
 const wsServer = new WebSocketServer({ noServer: true });
 
@@ -10,12 +10,12 @@ wsServer.on("connection", (socket) => {
 
 dotenv.config();
 
-const app = express();
-const port = process.env.PORT;
+const server = http.createServer();
 
-const server = app.listen(port);
 server.on("upgrade", (request, socket, head) => {
   wsServer.handleUpgrade(request, socket, head, (socket) => {
     wsServer.emit("connection", socket, request);
   });
 });
+
+server.listen(process.env.PORT);
