@@ -1,21 +1,21 @@
-import dotenv from "dotenv";
-import { WebSocketServer } from "ws";
-import http from "http";
+import dotenv from 'dotenv'
+import { WebSocketServer } from 'ws'
+import http from 'http'
 
-const wsServer = new WebSocketServer({ noServer: true });
+const wsServer = new WebSocketServer({ noServer: true })
 
-wsServer.on("connection", (socket) => {
-  socket.on("message", (message) => console.log("messaged!"));
-});
+wsServer.on('connection', (socket) => {
+  socket.on('message', (message) => console.log('messaged!'))
+})
 
-dotenv.config();
+dotenv.config()
 
-const server = http.createServer();
+const server = http.createServer()
 
-server.on("upgrade", (request, socket, head) => {
+server.on('upgrade', (request, socket, head) => {
   wsServer.handleUpgrade(request, socket, head, (socket) => {
-    wsServer.emit("connection", socket, request);
-  });
-});
+    wsServer.emit('connection', socket, request)
+  })
+})
 
-server.listen(process.env.PORT);
+server.listen(process.env.PORT)
