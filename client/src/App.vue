@@ -3,6 +3,10 @@ import { onMounted, ref } from 'vue'
 
 const canvas = ref<HTMLCanvasElement>()
 
+let socket: WebSocket | null = null
+
+const players = ref([])
+
 const form = ref({
   name: null,
 })
@@ -38,10 +42,19 @@ onMounted(() => {
   }
 
   ctx.stroke()
+
+  socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
+
+  socket.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data)
+    players.value = data.players
+  })
 })
 
-const submit = (e: Event) => {
-  console.log('submitted')
+const submit = () => {
+  if (socket !== null) {
+    socket.send(JSON.stringify(form.value))
+  }
 }
 </script>
 
@@ -56,5 +69,14 @@ const submit = (e: Event) => {
         <button class="text-shadow h-14 w-24 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Play</button>
       </div>
     </form>
+
+    <aside v-if="players.length > 0" class="absolute top-4 right-6 w-56 h-72">
+      <h2 class="text-shadow text-2xl text-white text-center">Scoreboard</h2>
+      <ul class="pt-3 grid gap-2">
+        <li v-for="player in players" class="bg-[#3E3E3E] rounded-full px-3 border-2 border-black">
+          <p class="text-white">{{ player.name }}</p>
+        </li>
+      </ul>
+    </aside>
   </main>
 </template>
