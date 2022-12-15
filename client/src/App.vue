@@ -7,10 +7,6 @@ const form = ref({
   name: null,
 })
 
-const isPlaying = ref(false)
-
-const players = ref([])
-
 onMounted(() => {
   if (!canvas.value) {
     return
@@ -60,14 +56,5 @@ const submit = (e: Event) => {
         <button class="text-shadow h-14 w-24 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Play</button>
       </div>
     </form>
-
-    <aside v-if="isPlaying" class="absolute top-8 right-8">
-      <h2>Scoreboard</h2>
-      <ul>
-        <li v-for="player in players" :key="player.id">
-          {{ player.name }}
-        </li>
-      </ul>
-    </aside>
   </main>
 </template>
