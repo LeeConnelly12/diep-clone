@@ -5,7 +5,11 @@ const canvas = ref<HTMLCanvasElement>()
 
 let socket: WebSocket | null = null
 
-const players = ref([])
+interface Player {
+  name: string
+}
+
+const players = ref<Player[]>()
 
 const form = ref({
   name: null,
@@ -70,7 +74,7 @@ const submit = () => {
       </div>
     </form>
 
-    <aside v-if="players.length > 0" class="absolute top-4 right-6 w-56 h-72">
+    <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72">
       <h2 class="text-shadow text-2xl text-white text-center">Scoreboard</h2>
       <ul class="pt-3 grid gap-2">
         <li v-for="player in players" class="bg-[#3E3E3E] rounded-full px-3 border-2 border-black">
