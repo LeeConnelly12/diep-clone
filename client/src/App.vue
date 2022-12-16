@@ -69,7 +69,7 @@ const submit = () => {
     <form @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
       <div class="mt-1 flex gap-2">
-        <input v-model="form.name" type="text" class="h-14 w-80 border-4 border-black bg-white text-5xl" />
+        <input v-model="form.name" type="text" required pattern="[a-zA-Z0-9]+" class="h-14 w-80 border-4 border-black bg-white text-5xl" />
         <button class="text-shadow h-14 w-24 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Play</button>
       </div>
     </form>

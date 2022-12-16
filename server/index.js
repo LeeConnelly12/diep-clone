@@ -16,6 +16,22 @@ wsServer.on('connection', (socket, req) => {
   socket.on('message', (data) => {
     const json = JSON.parse(data)
 
+    const nameIsValid = (name) => {
+      if (name === null) {
+        return false
+      }
+
+      if (/[^a-zA-Z0-9]/.test(name)) {
+        return false
+      }
+
+      return true
+    }
+
+    if (!nameIsValid(json.name)) {
+      return
+    }
+
     const metadata = clients.get(socket)
     metadata.name = json.name
 
