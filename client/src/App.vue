@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import Player from './Player'
+import Bullet from './Bullet'
 
 const canvas = ref(null)
 
@@ -7,9 +9,13 @@ let ctx = null
 
 let socket = null
 
+let player = null
+
 const players = ref([])
 
 const isPlaying = ref(true)
+
+const bullets = []
 
 const mouse = {
   x: null,
@@ -21,22 +27,9 @@ const form = ref({
 })
 
 const drawGrid = () => {
-  if (!canvas.value) {
-    return
-  }
-
-  if (!ctx) {
-    return
-  }
-
-  canvas.value.width = window.innerWidth
-  canvas.value.height = window.innerHeight
-
   ctx.fillStyle = '#CDCDCD'
-  ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
-
-  ctx.lineWidth = 2
   ctx.strokeStyle = '#C9C9C9'
+  ctx.lineWidth = 2
 
   for (let x = 0; x <= canvas.value.width; x += 30) {
     ctx.moveTo(x, 0)
@@ -48,11 +41,16 @@ const drawGrid = () => {
     ctx.lineTo(canvas.value.width, y)
   }
 
+  ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
   ctx.stroke()
 }
 
 onMounted(() => {
+  canvas.value.width = window.innerWidth
+  canvas.value.height = window.innerHeight
   ctx = canvas.value.getContext('2d')
+
+  player = new Player(canvas.value.width / 2, canvas.value.height / 2)
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
 
@@ -61,13 +59,26 @@ onMounted(() => {
     players.value = data.players
   })
 
-  start()
+  requestAnimationFrame(draw)
 })
 
-const mouseMove = () => {
-  const bounds = canvas?.value?.getBoundingClientRect() ?? 0
-  mouse.x = event.pageX - bounds.left
-  mouse.y = event.pageY - bounds.top
+const mouseMove = (e) => {
+  mouse.x = e.clientX
+  mouse.y = e.clientY
+}
+
+const shoot = () => {
+  let x = mouse.x - player.x
+  let y = mouse.y - player.y
+
+  const l = Math.sqrt(x * x + y * y)
+
+  x = x / l
+  y = y / l
+
+  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0)
+
+  bullets.push(bullet)
 }
 
 const submit = () => {
@@ -80,51 +91,16 @@ const submit = () => {
   isPlaying.value = true
 }
 
-const start = () => {
-  requestAnimationFrame(draw)
-}
-
 const draw = () => {
-  if (!canvas.value) {
-    return
-  }
-
-  if (!ctx) {
-    return
-  }
-
-  ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+  // Tick
+  player.tick(mouse.x, mouse.y)
+  bullets.forEach((bullet) => bullet.tick())
 
   drawGrid()
 
-  const centerX = canvas.value.width / 2
-  const centerY = canvas.value.height / 2
-  const radius = 30
-
-  const x = mouse.x
-  const y = mouse.y
-
-  const angle = Math.atan2(centerY - mouse.y, centerX - mouse.x)
-
-  // Cannon
-  ctx.save()
-  ctx.translate(centerX, centerY)
-  ctx.rotate(angle)
-  ctx.fillStyle = '#999999'
-  ctx.strokeStyle = '#727272'
-  ctx.lineWidth = 8
-  ctx.strokeRect(-30, 10, -20, -20)
-  ctx.fillRect(-30, 10, -20, -20)
-  ctx.restore()
-
-  // Player
-  ctx.beginPath()
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
-  ctx.fillStyle = '#00B2E1'
-  ctx.fill()
-  ctx.lineWidth = 4
-  ctx.strokeStyle = '#0085A8'
-  ctx.stroke()
+  // Render
+  bullets.forEach((bullet) => bullet.render(ctx))
+  player.render(ctx)
 
   requestAnimationFrame(draw)
 }
@@ -132,7 +108,7 @@ const draw = () => {
 
 <template>
   <main class="relative grid place-items-center">
-    <canvas @mousemove="mouseMove" ref="canvas"></canvas>
+    <canvas @mousemove="mouseMove" @click="shoot" ref="canvas"></canvas>
 
     <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
