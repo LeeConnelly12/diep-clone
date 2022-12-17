@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue'
 
-const canvas = ref<HTMLCanvasElement>()
+const canvas = ref(null)
 
-let socket: WebSocket | null = null
+let ctx = null
 
-interface Player {
-  name: string
-}
+let socket = null
 
-const players = ref<Player[]>()
+const players = ref([])
+
+const isPlaying = ref(true)
 
 const form = ref({
   name: null,
@@ -20,7 +20,7 @@ onMounted(() => {
     return
   }
 
-  const ctx = canvas.value.getContext('2d')
+  ctx = canvas.value.getContext('2d')
 
   if (ctx === null) {
     return
@@ -53,12 +53,59 @@ onMounted(() => {
     const data = JSON.parse(event.data)
     players.value = data.players
   })
+
+  start()
 })
 
 const submit = () => {
-  if (socket !== null) {
-    socket.send(JSON.stringify(form.value))
+  if (!socket) {
+    return
   }
+
+  socket.send(JSON.stringify(form.value))
+
+  isPlaying.value = true
+}
+
+const start = () => {
+  if (!canvas.value) {
+    return
+  }
+
+  if (!ctx) {
+    return
+  }
+
+  const centerX = canvas.value.width / 2
+  const centerY = canvas.value.height / 2
+  const radius = 30
+
+  // Cannon
+  ctx.save()
+  ctx.translate(centerX, centerY)
+  ctx.rotate(0.3 * -3)
+  ctx.fillStyle = '#999999'
+  ctx.strokeStyle = '#727272'
+  ctx.lineWidth = 8
+  ctx.strokeRect(30, -10, 22, 20)
+  ctx.fillRect(30, -10, 22, 20)
+  ctx.restore()
+
+  // Player
+  ctx.beginPath()
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
+  ctx.fillStyle = '#00B2E1'
+  ctx.fill()
+  ctx.lineWidth = 4
+  ctx.strokeStyle = '#0085A8'
+  ctx.stroke()
+
+  requestAnimationFrame(draw)
+}
+
+const draw = () => {
+  // console.log('running draw() function')
+  // requestAnimationFrame(draw)
 }
 </script>
 
@@ -66,7 +113,7 @@ const submit = () => {
   <main class="relative grid place-items-center">
     <canvas ref="canvas"></canvas>
 
-    <form @submit.prevent="submit" class="absolute">
+    <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
       <div class="mt-1 flex gap-2">
         <input v-model="form.name" type="text" required pattern="[a-zA-Z0-9]+" class="h-14 w-80 border-4 border-black bg-white text-5xl" />
