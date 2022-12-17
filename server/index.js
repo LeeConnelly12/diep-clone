@@ -96,6 +96,27 @@ wsServer.on('connection', (socket, req) => {
         }
       })
     }
+
+    // Bullet shot
+    if (json.type === 'shoot') {
+      wsServer.clients.forEach((client) => {
+        if (client.readyState === Websocket.OPEN) {
+          if (client !== socket && client.readyState === Websocket.OPEN) {
+            client.send(
+              JSON.stringify({
+                type: 'shoot',
+                bullet: {
+                  x: json.x,
+                  y: json.y,
+                  dx: json.dx,
+                  dy: json.dy,
+                },
+              }),
+            )
+          }
+        }
+      })
+    }
   })
 
   socket.on('close', () => {

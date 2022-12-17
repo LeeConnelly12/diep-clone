@@ -5,7 +5,7 @@ import Bullet from './Bullet'
 import MapRegion from './MapRegion'
 import Camera from './Camera'
 
-const canvas = ref(null)
+const canvas = ref(HTMLCanvasElement)
 
 let ctx = null
 
@@ -94,6 +94,16 @@ const shoot = () => {
 
   const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0)
 
+  socket.send(
+    JSON.stringify({
+      type: 'shoot',
+      x: bullet.x,
+      y: bullet.y,
+      dx: bullet.dx,
+      dy: bullet.dy,
+    }),
+  )
+
   bullets.push(bullet)
 }
 
@@ -120,6 +130,9 @@ const submit = () => {
     } else if (data.type == 'movedMouse') {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
+    } else if (data.type === 'shoot') {
+      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy)
+      bullets.push(bullet)
     }
   })
 
