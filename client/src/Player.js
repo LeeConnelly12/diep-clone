@@ -1,7 +1,9 @@
 class Player {
-  constructor(x, y) {
+  constructor(x, y, name, id) {
     this.x = x
     this.y = y
+    this.name = name
+    this.id = id
     this.angle = 0.0
     this.radius = 30.0
     this.keys = {
@@ -25,18 +27,45 @@ class Player {
 
     if (this.keys['w']) {
       this.y -= 1
+      dispatchEvent(
+        new KeyboardEvent('moved', {
+          bubbles: true,
+          key: 'w',
+        }),
+      )
     }
 
     if (this.keys['a']) {
       this.x -= 1
+
+      dispatchEvent(
+        new KeyboardEvent('moved', {
+          bubbles: true,
+          key: 'a',
+        }),
+      )
     }
 
     if (this.keys['s']) {
       this.y += 1
+
+      dispatchEvent(
+        new KeyboardEvent('moved', {
+          bubbles: true,
+          key: 's',
+        }),
+      )
     }
 
     if (this.keys['d']) {
       this.x += 1
+
+      dispatchEvent(
+        new KeyboardEvent('moved', {
+          bubbles: true,
+          key: 'd',
+        }),
+      )
     }
 
     if (this.x < canvas.width / 2) {

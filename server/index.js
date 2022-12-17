@@ -1,49 +1,62 @@
 import dotenv from 'dotenv'
 import Websocket, { WebSocketServer } from 'ws'
 import http from 'http'
-import { randomUUID } from 'crypto'
 
 const wsServer = new WebSocketServer({ noServer: true })
 
 const clients = new Map()
 
 wsServer.on('connection', (socket, req) => {
-  clients.set(socket, {
-    id: randomUUID(),
-    name: null,
-  })
-
   socket.on('message', (data) => {
     const json = JSON.parse(data)
 
-    const nameIsValid = (name) => {
-      if (name === null) {
-        return false
+    // Joined game
+    if (json.type === 'joined') {
+      if (!nameIsValid(json.name)) {
+        return
       }
 
-      if (/[^a-zA-Z0-9]/.test(name)) {
-        return false
-      }
+      clients.set(socket, {
+        id: json.id,
+        name: json.name,
+        x: json.x,
+        y: json.y,
+      })
 
-      return true
+      wsServer.clients.forEach((client) => {
+        if (client.readyState === Websocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: 'joined',
+              players: [...clients.values()],
+            }),
+          )
+        }
+      })
     }
 
-    if (!nameIsValid(json.name)) {
-      return
+    // Moved
+    if (json.type === 'moved') {
+      const metadata = clients.get(socket)
+
+      wsServer.clients.forEach((client) => {
+        if (client.readyState === Websocket.OPEN) {
+          if (client !== socket && client.readyState === Websocket.OPEN) {
+            client.send(
+              JSON.stringify({
+                type: 'moved',
+                player: {
+                  id: metadata.id,
+                  name: json.name,
+                  x: json.x,
+                  y: json.y,
+                },
+              }),
+            )
+          }
+        }
+      })
     }
-
-    const metadata = clients.get(socket)
-    metadata.name = json.name
-
-    wsServer.clients.forEach((client) => {
-      if (client.readyState === Websocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            players: [...clients.values()],
-          }),
-        )
-      }
-    })
   })
 
   socket.on('close', () => {
@@ -72,3 +85,15 @@ server.on('upgrade', (request, socket, head) => {
 })
 
 server.listen(process.env.PORT)
+
+function nameIsValid(name) {
+  if (name === null) {
+    return false
+  }
+
+  if (/[^a-zA-Z0-9]/.test(name)) {
+    return false
+  }
+
+  return true
+}

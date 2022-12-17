@@ -19,7 +19,7 @@ let map = new MapRegion()
 
 const players = ref([])
 
-const isPlaying = ref(true)
+const isPlaying = ref(false)
 
 const keys = {
   w: false,
@@ -43,17 +43,34 @@ onMounted(() => {
   canvas.value.width = window.innerWidth
   canvas.value.height = window.innerHeight
   ctx = canvas.value.getContext('2d')
-
-  player = new Player(map.w / 2, map.h / 2)
+  map.render(ctx)
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
 
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data)
-    players.value = data.players
+
+    console.log({ type: data.type })
+
+    if (data.type === 'joined') {
+      players.value = data.players
+    } else if (data.type === 'moved') {
+      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      movedPlayer.x = data.player.x
+      movedPlayer.y = data.player.y
+    }
   })
 
-  requestAnimationFrame(draw)
+  window.addEventListener('moved', function (event) {
+    socket.send(
+      JSON.stringify({
+        type: 'moved',
+        id: player.id,
+        x: player.x,
+        y: player.y,
+      }),
+    )
+  })
 })
 
 const mouseMove = (e) => {
@@ -62,6 +79,10 @@ const mouseMove = (e) => {
 }
 
 const shoot = () => {
+  if (!player) {
+    return
+  }
+
   let x = mouse.x - canvas.value.width / 2
   let y = mouse.y - canvas.value.height / 2
 
@@ -80,9 +101,21 @@ const submit = () => {
     return
   }
 
-  socket.send(JSON.stringify(form.value))
-
   isPlaying.value = true
+
+  player = new Player(map.w / 2, map.h / 2, form.value.name, crypto.randomUUID())
+
+  socket.send(
+    JSON.stringify({
+      type: 'joined',
+      id: player.id,
+      name: player.name,
+      x: player.x,
+      y: player.y,
+    }),
+  )
+
+  requestAnimationFrame(draw)
 }
 
 const draw = () => {
@@ -102,6 +135,13 @@ const draw = () => {
   map.render(ctx)
   bullets.forEach((bullet) => bullet.render(ctx))
   player.render(ctx)
+
+  players.value
+    .filter((otherPlayer) => otherPlayer.id !== player.id)
+    .forEach((otherPlayer) => {
+      const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name)
+      draw.render(ctx)
+    })
 
   requestAnimationFrame(draw)
 }
