@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue'
 import Player from './Player'
 import Bullet from './Bullet'
+import MapRegion from './MapRegion'
+import Camera from './Camera'
 
 const canvas = ref(null)
 
@@ -10,6 +12,10 @@ let ctx = null
 let socket = null
 
 let player = null
+
+let camera = new Camera()
+
+let map = new MapRegion()
 
 const players = ref([])
 
@@ -33,25 +39,6 @@ const form = ref({
   name: null,
 })
 
-const drawGrid = () => {
-  ctx.fillStyle = '#CDCDCD'
-  ctx.strokeStyle = '#C9C9C9'
-  ctx.lineWidth = 2
-
-  for (let x = 0; x <= canvas.value.width; x += 30) {
-    ctx.moveTo(x, 0)
-    ctx.lineTo(x, canvas.value.height)
-  }
-
-  for (let y = 0; y <= canvas.value.height; y += 30) {
-    ctx.moveTo(0, y)
-    ctx.lineTo(canvas.value.width, y)
-  }
-
-  ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
-  ctx.stroke()
-}
-
 onMounted(() => {
   canvas.value.width = window.innerWidth
   canvas.value.height = window.innerHeight
@@ -66,6 +53,10 @@ onMounted(() => {
     players.value = data.players
   })
 
+  window.addEventListener('click', (e) => {
+    shoot(e)
+  })
+
   requestAnimationFrame(draw)
 })
 
@@ -75,8 +66,8 @@ const mouseMove = (e) => {
 }
 
 const shoot = () => {
-  let x = mouse.x - player.x
-  let y = mouse.y - player.y
+  let x = mouse.x - canvas.value.width / 2
+  let y = mouse.y - canvas.value.height / 2
 
   const l = Math.sqrt(x * x + y * y)
 
@@ -100,12 +91,19 @@ const submit = () => {
 
 const draw = () => {
   // Tick
-  player.tick(mouse.x, mouse.y)
+  player.tick(mouse.x, mouse.y, map, canvas.value)
   bullets.forEach((bullet) => bullet.tick())
 
-  drawGrid()
+  // Reset
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
-  // Render
+  camera.focus(canvas.value, map, player)
+
+  // Flip the sign b/c positive shifts the canvas to the right, negative - to the left
+  ctx.translate(-camera.x, -camera.y)
+
+  map.render(ctx)
   bullets.forEach((bullet) => bullet.render(ctx))
   player.render(ctx)
 
@@ -115,7 +113,7 @@ const draw = () => {
 
 <template>
   <main class="relative grid place-items-center">
-    <canvas @mousemove="mouseMove" @click="shoot" ref="canvas"></canvas>
+    <canvas @mousemove="mouseMove" ref="canvas"></canvas>
 
     <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>

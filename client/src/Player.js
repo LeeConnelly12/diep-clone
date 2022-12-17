@@ -20,47 +20,41 @@ class Player {
     })
   }
 
-  tick(mouseX, mouseY) {
-    this.angle = Math.atan2(mouseY - this.y, mouseX - this.x)
-
-    let velY = 0
-    let velX = 0
-    const speed = 2
-    const friction = 0.98
+  tick(mouseX, mouseY, map, canvas) {
+    this.angle = Math.atan2(mouseY - canvas.height / 2, mouseX - canvas.width / 2)
 
     if (this.keys['w']) {
-      if (velY > -speed) {
-        velY--
-      }
-    }
-
-    if (this.keys['s']) {
-      if (velY < speed) {
-        velY++
-      }
-    }
-
-    if (this.keys['d']) {
-      if (velX < speed) {
-        velX++
-      }
+      this.y -= 1
     }
 
     if (this.keys['a']) {
-      if (velX > -speed) {
-        velX--
-      }
+      this.x -= 1
     }
 
-    velY *= friction
-    this.y += velY
+    if (this.keys['s']) {
+      this.y += 1
+    }
 
-    velX *= friction
-    this.x += velX
+    if (this.keys['d']) {
+      this.x += 1
+    }
+
+    if (this.x < 0) {
+      this.x = 0
+    } else if (this.x > map.w - this.radius) {
+      this.x = map.w - this.radius
+    }
+
+    if (this.y < 0) {
+      this.y = 0
+    } else if (this.y > map.h - this.radius) {
+      this.y = map.h - this.radius
+    }
   }
 
   render(ctx) {
     // Cannon
+    ctx.save()
     ctx.translate(this.x, this.y)
     ctx.rotate(this.angle)
     ctx.fillStyle = '#999999'
@@ -68,8 +62,7 @@ class Player {
     ctx.lineWidth = 8
     ctx.strokeRect(50, 10, -20, -20)
     ctx.fillRect(50, 10, -20, -20)
-    ctx.rotate(-this.angle)
-    ctx.translate(-this.x, -this.y)
+    ctx.restore()
 
     // Player
     ctx.fillStyle = '#00B2E1'
