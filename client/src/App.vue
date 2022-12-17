@@ -11,18 +11,21 @@ const players = ref([])
 
 const isPlaying = ref(true)
 
+const mouse = {
+  x: null,
+  y: null,
+}
+
 const form = ref({
   name: null,
 })
 
-onMounted(() => {
+const drawGrid = () => {
   if (!canvas.value) {
     return
   }
 
-  ctx = canvas.value.getContext('2d')
-
-  if (ctx === null) {
+  if (!ctx) {
     return
   }
 
@@ -46,12 +49,22 @@ onMounted(() => {
   }
 
   ctx.stroke()
+}
+
+onMounted(() => {
+  ctx = canvas.value.getContext('2d')
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
 
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data)
     players.value = data.players
+  })
+
+  window.addEventListener('mousemove', (event) => {
+    const bounds = canvas?.value?.getBoundingClientRect() ?? 0
+    mouse.x = event.pageX - bounds.left
+    mouse.y = event.pageY - bounds.top
   })
 
   start()
@@ -68,6 +81,10 @@ const submit = () => {
 }
 
 const start = () => {
+  requestAnimationFrame(draw)
+}
+
+const draw = () => {
   if (!canvas.value) {
     return
   }
@@ -76,19 +93,28 @@ const start = () => {
     return
   }
 
+  ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+
+  drawGrid()
+
   const centerX = canvas.value.width / 2
   const centerY = canvas.value.height / 2
   const radius = 30
 
+  const x = mouse.x
+  const y = mouse.y
+
+  const angle = Math.atan2(centerY - mouse.y, centerX - mouse.x)
+
   // Cannon
   ctx.save()
   ctx.translate(centerX, centerY)
-  ctx.rotate(0.3 * -3)
+  ctx.rotate(angle)
   ctx.fillStyle = '#999999'
   ctx.strokeStyle = '#727272'
   ctx.lineWidth = 8
-  ctx.strokeRect(30, -10, 22, 20)
-  ctx.fillRect(30, -10, 22, 20)
+  ctx.strokeRect(-30, 10, -20, -20)
+  ctx.fillRect(-30, 10, -20, -20)
   ctx.restore()
 
   // Player
@@ -101,11 +127,6 @@ const start = () => {
   ctx.stroke()
 
   requestAnimationFrame(draw)
-}
-
-const draw = () => {
-  // console.log('running draw() function')
-  // requestAnimationFrame(draw)
 }
 </script>
 
