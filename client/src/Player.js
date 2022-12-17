@@ -4,10 +4,59 @@ class Player {
     this.y = y
     this.angle = 0.0
     this.radius = 30.0
+    this.keys = {
+      w: false,
+      a: false,
+      s: false,
+      d: false,
+    }
+
+    window.addEventListener('keydown', (event) => {
+      this.keys[event.key] = true
+    })
+
+    window.addEventListener('keyup', (event) => {
+      this.keys[event.key] = false
+    })
   }
 
   tick(mouseX, mouseY) {
     this.angle = Math.atan2(mouseY - this.y, mouseX - this.x)
+
+    let velY = 0
+    let velX = 0
+    const speed = 2
+    const friction = 0.98
+
+    if (this.keys['w']) {
+      if (velY > -speed) {
+        velY--
+      }
+    }
+
+    if (this.keys['s']) {
+      if (velY < speed) {
+        velY++
+      }
+    }
+
+    if (this.keys['d']) {
+      if (velX < speed) {
+        velX++
+      }
+    }
+
+    if (this.keys['a']) {
+      if (velX > -speed) {
+        velX--
+      }
+    }
+
+    velY *= friction
+    this.y += velY
+
+    velX *= friction
+    this.x += velX
   }
 
   render(ctx) {

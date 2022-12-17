@@ -15,6 +15,13 @@ const players = ref([])
 
 const isPlaying = ref(true)
 
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+}
+
 const bullets = []
 
 const mouse = {
