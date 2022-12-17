@@ -39,16 +39,16 @@ class Player {
       this.x += 1
     }
 
-    if (this.x < 0) {
-      this.x = 0
-    } else if (this.x > map.w - this.radius) {
-      this.x = map.w - this.radius
+    if (this.x < canvas.width / 2) {
+      this.x = canvas.width / 2
+    } else if (this.x > map.w - canvas.width / 2 - this.radius) {
+      this.x = map.w - canvas.width / 2 - this.radius
     }
 
-    if (this.y < 0) {
-      this.y = 0
-    } else if (this.y > map.h - this.radius) {
-      this.y = map.h - this.radius
+    if (this.y < canvas.height / 2) {
+      this.y = canvas.height / 2
+    } else if (this.y > map.h - canvas.height / 2 - this.radius) {
+      this.y = map.h - canvas.height / 2 - this.radius
     }
   }
 

@@ -44,17 +44,13 @@ onMounted(() => {
   canvas.value.height = window.innerHeight
   ctx = canvas.value.getContext('2d')
 
-  player = new Player(canvas.value.width / 2, canvas.value.height / 2)
+  player = new Player(map.w / 2, map.h / 2)
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
 
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data)
     players.value = data.players
-  })
-
-  window.addEventListener('click', (e) => {
-    shoot(e)
   })
 
   requestAnimationFrame(draw)
@@ -113,7 +109,7 @@ const draw = () => {
 
 <template>
   <main class="relative grid place-items-center">
-    <canvas @mousemove="mouseMove" ref="canvas"></canvas>
+    <canvas @mousemove="mouseMove" @click="shoot" ref="canvas"></canvas>
 
     <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
