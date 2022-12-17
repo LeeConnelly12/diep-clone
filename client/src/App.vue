@@ -61,14 +61,14 @@ onMounted(() => {
     players.value = data.players
   })
 
-  window.addEventListener('mousemove', (event) => {
-    const bounds = canvas?.value?.getBoundingClientRect() ?? 0
-    mouse.x = event.pageX - bounds.left
-    mouse.y = event.pageY - bounds.top
-  })
-
   start()
 })
+
+const mouseMove = () => {
+  const bounds = canvas?.value?.getBoundingClientRect() ?? 0
+  mouse.x = event.pageX - bounds.left
+  mouse.y = event.pageY - bounds.top
+}
 
 const submit = () => {
   if (!socket) {
@@ -132,7 +132,7 @@ const draw = () => {
 
 <template>
   <main class="relative grid place-items-center">
-    <canvas ref="canvas"></canvas>
+    <canvas @mousemove="mouseMove" ref="canvas"></canvas>
 
     <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
