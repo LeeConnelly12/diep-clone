@@ -1,10 +1,10 @@
 class Player {
-  constructor(x, y, name, id) {
+  constructor(x, y, name, id, angle) {
     this.x = x
     this.y = y
     this.name = name
     this.id = id
-    this.angle = 0.0
+    this.angle = angle ?? 0.0
     this.radius = 30.0
     this.keys = {
       w: false,

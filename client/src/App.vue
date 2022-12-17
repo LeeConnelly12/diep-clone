@@ -50,14 +50,15 @@ onMounted(() => {
   socket.addEventListener('message', (event) => {
     const data = JSON.parse(event.data)
 
-    console.log({ type: data.type })
-
     if (data.type === 'joined') {
       players.value = data.players
     } else if (data.type === 'moved') {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
       movedPlayer.y = data.player.y
+    } else if (data.type == 'movedMouse') {
+      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      movedPlayer.angle = data.player.angle
     }
   })
 
@@ -74,8 +75,20 @@ onMounted(() => {
 })
 
 const mouseMove = (e) => {
+  if (!player) {
+    return
+  }
+
   mouse.x = e.clientX
   mouse.y = e.clientY
+
+  socket.send(
+    JSON.stringify({
+      type: 'mouseMoved',
+      id: player.id,
+      angle: player.angle,
+    }),
+  )
 }
 
 const shoot = () => {
@@ -112,6 +125,7 @@ const submit = () => {
       name: player.name,
       x: player.x,
       y: player.y,
+      angle: player.angle,
     }),
   )
 
@@ -139,7 +153,7 @@ const draw = () => {
   players.value
     .filter((otherPlayer) => otherPlayer.id !== player.id)
     .forEach((otherPlayer) => {
-      const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name)
+      const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name, otherPlayer.id, otherPlayer.angle)
       draw.render(ctx)
     })
 
