@@ -105,6 +105,7 @@ wsServer.on('connection', (socket, req) => {
       if (client.readyState === Websocket.OPEN) {
         client.send(
           JSON.stringify({
+            type: 'left',
             players: [...clients.values()],
           }),
         )

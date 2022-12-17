@@ -111,6 +111,8 @@ const submit = () => {
 
     if (data.type === 'joined') {
       players.value = data.players
+    } else if (data.type === 'left') {
+      players.value = data.players
     } else if (data.type === 'moved') {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
