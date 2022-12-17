@@ -47,28 +47,14 @@ onMounted(() => {
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
 
-  socket.addEventListener('message', (event) => {
-    const data = JSON.parse(event.data)
-
-    if (data.type === 'joined') {
-      players.value = data.players
-    } else if (data.type === 'moved') {
-      const movedPlayer = players.value.find((player) => player.id === data.player.id)
-      movedPlayer.x = data.player.x
-      movedPlayer.y = data.player.y
-    } else if (data.type == 'movedMouse') {
-      const movedPlayer = players.value.find((player) => player.id === data.player.id)
-      movedPlayer.angle = data.player.angle
-    }
-  })
-
   window.addEventListener('moved', function (event) {
     socket.send(
       JSON.stringify({
         type: 'moved',
-        id: player.id,
+        name: player.name,
         x: player.x,
         y: player.y,
+        angle: player.angle,
       }),
     )
   })
@@ -85,7 +71,9 @@ const mouseMove = (e) => {
   socket.send(
     JSON.stringify({
       type: 'mouseMoved',
-      id: player.id,
+      name: player.name,
+      x: player.x,
+      y: player.y,
       angle: player.angle,
     }),
   )
@@ -117,6 +105,21 @@ const submit = () => {
   isPlaying.value = true
 
   player = new Player(map.w / 2, map.h / 2, form.value.name, crypto.randomUUID())
+
+  socket.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data)
+
+    if (data.type === 'joined') {
+      players.value = data.players
+    } else if (data.type === 'moved') {
+      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      movedPlayer.x = data.player.x
+      movedPlayer.y = data.player.y
+    } else if (data.type == 'movedMouse') {
+      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      movedPlayer.angle = data.player.angle
+    }
+  })
 
   socket.send(
     JSON.stringify({

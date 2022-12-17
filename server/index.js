@@ -40,6 +40,14 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'moved') {
       const metadata = clients.get(socket)
 
+      clients.set(socket, {
+        id: metadata.id,
+        name: json.name,
+        x: json.x,
+        y: json.y,
+        angle: json.angle,
+      })
+
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
           if (client !== socket && client.readyState === Websocket.OPEN) {
@@ -63,6 +71,14 @@ wsServer.on('connection', (socket, req) => {
     // Moved mouse
     if (json.type === 'mouseMoved') {
       const metadata = clients.get(socket)
+
+      clients.set(socket, {
+        id: metadata.id,
+        name: json.name,
+        x: json.x,
+        y: json.y,
+        angle: json.angle,
+      })
 
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
