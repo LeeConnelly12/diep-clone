@@ -210,6 +210,10 @@ const draw = () => {
 
   map.render(ctx)
   bullets.forEach((bullet) => bullet.render(ctx))
+
+  if (player.health < 100) {
+    player.renderHealthBar(ctx)
+  }
   player.render(ctx)
 
   players.value
@@ -218,6 +222,7 @@ const draw = () => {
       const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name, otherPlayer.id, otherPlayer.angle)
       draw.render(ctx)
       draw.renderName(ctx)
+      draw.renderHealthBar(ctx)
     })
 
   requestAnimationFrame(draw)

@@ -1,11 +1,13 @@
 class Player {
-  constructor(x, y, name, id, angle, radius) {
+  constructor(x, y, name, id, angle, radius, health, maxHealth) {
     this.x = x
     this.y = y
     this.name = name
     this.id = id
     this.angle = angle ?? 0.0
     this.radius = radius ?? 30.0
+    this.health = health ?? 100
+    this.maxHealth = this.maxHealth ?? 100
     this.keys = {
       w: false,
       a: false,
@@ -114,8 +116,47 @@ class Player {
     ctx.strokeText(this.name, this.x, this.y - this.radius * 1.75)
   }
 
+  renderHealthBar(ctx) {
+    // Player health
+    ctx.fillStyle = '#85E37D'
+    ctx.strokeStyle = '#555555'
+
+    const width = 0.75
+
+    const startBgX = this.x - (this.maxHealth / 2) * width
+    const startBgY = this.y + this.radius + 14
+    const endBgX = startBgX + this.maxHealth * width
+    const endBgY = this.y + 54
+    this.roundRect(ctx, startBgX, startBgY, endBgX, endBgY, 5, '#555555')
+
+    const startX = startBgX + 2
+    const startY = startBgY + 2
+    const endX = startX - 4 + this.health * width
+    const endY = endBgY - 2
+    this.roundRect(ctx, startX, startY, endX, endY, 5, '#85E37D')
+  }
+
+  roundRect(ctx, x0, y0, x1, y1, r, color) {
+    const w = x1 - x0
+    const h = y1 - y0
+    if (r > w / 2) r = w / 2
+    if (r > h / 2) r = h / 2
+    ctx.beginPath()
+    ctx.moveTo(x1 - r, y0)
+    ctx.quadraticCurveTo(x1, y0, x1, y0 + r)
+    ctx.lineTo(x1, y1 - r)
+    ctx.quadraticCurveTo(x1, y1, x1 - r, y1)
+    ctx.lineTo(x0 + r, y1)
+    ctx.quadraticCurveTo(x0, y1, x0, y1 - r)
+    ctx.lineTo(x0, y0 + r)
+    ctx.quadraticCurveTo(x0, y0, x0 + r, y0)
+    ctx.closePath()
+    ctx.fillStyle = color
+    ctx.fill()
+  }
+
   shot(bullet) {
-    console.log('shot')
+    this.health -= 20
   }
 }
 
