@@ -217,6 +217,7 @@ const draw = () => {
     .forEach((otherPlayer) => {
       const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name, otherPlayer.id, otherPlayer.angle)
       draw.render(ctx)
+      draw.renderName(ctx)
     })
 
   requestAnimationFrame(draw)

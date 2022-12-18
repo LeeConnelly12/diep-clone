@@ -101,7 +101,10 @@ class Player {
     ctx.arc(this.x, this.y, this.radius, 0.0, 2 * Math.PI, false)
     ctx.fill()
     ctx.stroke()
+  }
 
+  renderName(ctx) {
+    // Player name
     ctx.fillStyle = 'white'
     ctx.strokeStyle = 'black'
     ctx.font = '36px Ubuntu'
