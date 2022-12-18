@@ -1,11 +1,11 @@
 class Player {
-  constructor(x, y, name, id, angle) {
+  constructor(x, y, name, id, angle, radius) {
     this.x = x
     this.y = y
     this.name = name
     this.id = id
     this.angle = angle ?? 0.0
-    this.radius = 30.0
+    this.radius = radius ?? 30.0
     this.keys = {
       w: false,
       a: false,
@@ -101,6 +101,10 @@ class Player {
     ctx.arc(this.x, this.y, this.radius, 0.0, 2 * Math.PI, false)
     ctx.fill()
     ctx.stroke()
+  }
+
+  shot(bullet) {
+    console.log('shot')
   }
 }
 

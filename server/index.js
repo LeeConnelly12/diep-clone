@@ -22,6 +22,7 @@ wsServer.on('connection', (socket, req) => {
         x: json.x,
         y: json.y,
         angle: json.angle,
+        radius: json.radius,
       })
 
       wsServer.clients.forEach((client) => {
@@ -40,12 +41,17 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'moved') {
       const metadata = clients.get(socket)
 
+      if (!metadata) {
+        socket.close()
+      }
+
       clients.set(socket, {
         id: metadata.id,
         name: json.name,
         x: json.x,
         y: json.y,
         angle: json.angle,
+        radius: json.radius,
       })
 
       wsServer.clients.forEach((client) => {
@@ -60,6 +66,7 @@ wsServer.on('connection', (socket, req) => {
                   x: json.x,
                   y: json.y,
                   angle: json.angle,
+                  radius: json.radius,
                 },
               }),
             )
@@ -72,12 +79,17 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'mouseMoved') {
       const metadata = clients.get(socket)
 
+      if (!metadata) {
+        socket.close()
+      }
+
       clients.set(socket, {
         id: metadata.id,
         name: json.name,
         x: json.x,
         y: json.y,
         angle: json.angle,
+        radius: json.radius,
       })
 
       wsServer.clients.forEach((client) => {
@@ -106,6 +118,7 @@ wsServer.on('connection', (socket, req) => {
               JSON.stringify({
                 type: 'shoot',
                 bullet: {
+                  id: json.id,
                   x: json.x,
                   y: json.y,
                   dx: json.dx,

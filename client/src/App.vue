@@ -28,7 +28,7 @@ const keys = {
   d: false,
 }
 
-const bullets = []
+let bullets = []
 
 const mouse = {
   x: null,
@@ -46,18 +46,6 @@ onMounted(() => {
   map.render(ctx)
 
   socket = new WebSocket(import.meta.env.VITE_SOCKET_URL)
-
-  window.addEventListener('moved', function (event) {
-    socket.send(
-      JSON.stringify({
-        type: 'moved',
-        name: player.name,
-        x: player.x,
-        y: player.y,
-        angle: player.angle,
-      }),
-    )
-  })
 })
 
 const mouseMove = (e) => {
@@ -75,6 +63,7 @@ const mouseMove = (e) => {
       x: player.x,
       y: player.y,
       angle: player.angle,
+      radius: player.radius,
     }),
   )
 }
@@ -92,11 +81,12 @@ const shoot = () => {
   x = x / l
   y = y / l
 
-  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0)
+  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0, crypto.randomUUID())
 
   socket.send(
     JSON.stringify({
       type: 'shoot',
+      id: bullet.id,
       x: bullet.x,
       y: bullet.y,
       dx: bullet.dx,
@@ -131,7 +121,7 @@ const submit = () => {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
     } else if (data.type === 'shoot') {
-      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy)
+      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id)
       bullets.push(bullet)
     }
   })
@@ -144,16 +134,70 @@ const submit = () => {
       x: player.x,
       y: player.y,
       angle: player.angle,
+      radius: player.radius,
     }),
   )
 
+  window.addEventListener('moved', function (event) {
+    socket.send(
+      JSON.stringify({
+        type: 'moved',
+        name: player.name,
+        x: player.x,
+        y: player.y,
+        angle: player.angle,
+        radius: player.radius,
+      }),
+    )
+  })
+
   requestAnimationFrame(draw)
+}
+
+const collideCircle = (circle1, circle2) => {
+  /* first we get the x and y distance between the two circles. */
+  let distance_x = circle1.x - circle2.x
+  let distance_y = circle1.y - circle2.y
+  /* Then we get the sum of their radii. */
+  let radii_sum = circle1.radius + circle2.radius
+
+  /* Then we test to see if the square of their distance is greater than the
+        square of their radii. If it is, then there is no collision. If it isn't,
+        then we have a collision. */
+  if (distance_x * distance_x + distance_y * distance_y <= radii_sum * radii_sum) return true
+
+  return false
 }
 
 const draw = () => {
   // Tick
   player.tick(mouse.x, mouse.y, map, canvas.value)
-  bullets.forEach((bullet) => bullet.tick())
+
+  bullets.forEach((currentBullet) => {
+    const circle1 = {
+      x: currentBullet.x,
+      y: currentBullet.y,
+      radius: currentBullet.radius,
+    }
+
+    players.value.forEach((currentPlayer) => {
+      const circle2 = {
+        x: currentPlayer.x,
+        y: currentPlayer.y,
+        radius: currentPlayer.radius,
+      }
+
+      if (collideCircle(circle1, circle2)) {
+        const playerObj = new Player(currentPlayer.x, currentPlayer.y, currentPlayer.id, currentPlayer.angle, currentPlayer.radius)
+
+        playerObj.shot(currentBullet)
+
+        // bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
+      }
+
+      currentBullet.tick(players.value)
+    })
+  })
 
   // Reset
   ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -191,7 +235,7 @@ const draw = () => {
       </div>
     </form>
 
-    <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72">
+    <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72 pointer-events-none">
       <h2 class="text-shadow text-2xl text-white text-center">Scoreboard</h2>
       <ul class="pt-3 grid gap-2">
         <li v-for="player in players" class="bg-[#3E3E3E] rounded-full px-3 border-2 border-black">
