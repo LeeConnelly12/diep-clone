@@ -101,6 +101,14 @@ class Player {
     ctx.arc(this.x, this.y, this.radius, 0.0, 2 * Math.PI, false)
     ctx.fill()
     ctx.stroke()
+
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'black'
+    ctx.font = '36px Ubuntu'
+    ctx.lineWidth = 2
+    ctx.textAlign = 'center'
+    ctx.fillText(this.name, this.x, this.y - this.radius * 1.75)
+    ctx.strokeText(this.name, this.x, this.y - this.radius * 1.75)
   }
 
   shot(bullet) {
