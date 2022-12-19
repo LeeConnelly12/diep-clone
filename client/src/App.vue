@@ -5,7 +5,7 @@ import Bullet from './Bullet'
 import MapRegion from './MapRegion'
 import Camera from './Camera'
 
-const canvas = ref(HTMLCanvasElement)
+const canvas = ref(null)
 
 let ctx = null
 
@@ -64,6 +64,7 @@ const mouseMove = (e) => {
       y: player.y,
       angle: player.angle,
       radius: player.radius,
+      health: player.health,
     }),
   )
 }
@@ -81,20 +82,21 @@ const shoot = () => {
   x = x / l
   y = y / l
 
-  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0, crypto.randomUUID())
+  // Issue is player has wrong x and y, still at spawn, should be updated
+
+  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0, crypto.randomUUID(), player.id)
 
   socket.send(
     JSON.stringify({
       type: 'shoot',
       id: bullet.id,
+      playerId: bullet.playerId,
       x: bullet.x,
       y: bullet.y,
       dx: bullet.dx,
       dy: bullet.dy,
     }),
   )
-
-  bullets.push(bullet)
 }
 
 const submit = () => {
@@ -110,9 +112,13 @@ const submit = () => {
     const data = JSON.parse(event.data)
 
     if (data.type === 'joined') {
-      players.value = data.players
+      players.value = data.players.map((player) => {
+        return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
+      })
     } else if (data.type === 'left') {
-      players.value = data.players
+      players.value = data.players.map((player) => {
+        return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
+      })
     } else if (data.type === 'moved') {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
@@ -121,8 +127,12 @@ const submit = () => {
       const movedPlayer = players.value.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
     } else if (data.type === 'shoot') {
-      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id)
+      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId)
       bullets.push(bullet)
+    } else if (data.type === 'shot') {
+      const shotPlayer = players.value.find((player) => player.id === data.player.id)
+      console.log(`player with id ${shotPlayer.id} was shot`)
+      shotPlayer.health = data.player.health
     }
   })
 
@@ -135,6 +145,7 @@ const submit = () => {
       y: player.y,
       angle: player.angle,
       radius: player.radius,
+      health: player.health,
     }),
   )
 
@@ -142,14 +153,26 @@ const submit = () => {
     socket.send(
       JSON.stringify({
         type: 'moved',
-        name: player.name,
         x: player.x,
         y: player.y,
         angle: player.angle,
-        radius: player.radius,
       }),
     )
   })
+
+  window.addEventListener('shot', function (event) {
+    socket.send(
+      JSON.stringify({
+        type: 'shot',
+        id: event.detail.player.id,
+        health: event.detail.player.health,
+      }),
+    )
+  })
+
+  window.addEventListener('click', shoot)
+
+  window.addEventListener('mousemove', mouseMove)
 
   requestAnimationFrame(draw)
 }
@@ -170,34 +193,7 @@ const collideCircle = (circle1, circle2) => {
 }
 
 const draw = () => {
-  // Tick
   player.tick(mouse.x, mouse.y, map, canvas.value)
-
-  bullets.forEach((currentBullet) => {
-    const circle1 = {
-      x: currentBullet.x,
-      y: currentBullet.y,
-      radius: currentBullet.radius,
-    }
-
-    players.value.forEach((currentPlayer) => {
-      const circle2 = {
-        x: currentPlayer.x,
-        y: currentPlayer.y,
-        radius: currentPlayer.radius,
-      }
-
-      if (collideCircle(circle1, circle2)) {
-        const playerObj = new Player(currentPlayer.x, currentPlayer.y, currentPlayer.id, currentPlayer.angle, currentPlayer.radius)
-
-        playerObj.shot(currentBullet)
-
-        // bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
-      }
-
-      currentBullet.tick(players.value)
-    })
-  })
 
   // Reset
   ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -209,20 +205,46 @@ const draw = () => {
   ctx.translate(-camera.x, -camera.y)
 
   map.render(ctx)
+
+  bullets.forEach((currentBullet) => {
+    currentBullet.tick()
+
+    const circle1 = {
+      x: currentBullet.x,
+      y: currentBullet.y,
+      radius: currentBullet.radius,
+    }
+
+    players.value
+      .filter((currentPlayer) => currentPlayer.id !== currentBullet.playerId)
+      .forEach((currentPlayer) => {
+        const circle2 = {
+          x: currentPlayer.x,
+          y: currentPlayer.y,
+          radius: currentPlayer.radius,
+        }
+
+        if (collideCircle(circle1, circle2)) {
+          console.log('Bullet collided with player')
+          currentPlayer.shot(currentBullet)
+          // bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
+        }
+      })
+  })
+
   bullets.forEach((bullet) => bullet.render(ctx))
 
-  if (player.health < 100) {
-    player.renderHealthBar(ctx)
-  }
+  // if (player.health < 100) {
+  //   player.renderHealthBar(ctx)
+  // }
   player.render(ctx)
 
   players.value
     .filter((otherPlayer) => otherPlayer.id !== player.id)
     .forEach((otherPlayer) => {
-      const draw = new Player(otherPlayer.x, otherPlayer.y, otherPlayer.name, otherPlayer.id, otherPlayer.angle)
-      draw.render(ctx)
-      draw.renderName(ctx)
-      draw.renderHealthBar(ctx)
+      otherPlayer.render(ctx)
+      otherPlayer.renderName(ctx)
+      // otherPlayer.renderHealthBar(ctx)
     })
 
   requestAnimationFrame(draw)
@@ -231,7 +253,7 @@ const draw = () => {
 
 <template>
   <main class="relative grid place-items-center">
-    <canvas @mousemove="mouseMove" @click="shoot" ref="canvas"></canvas>
+    <canvas ref="canvas"></canvas>
 
     <form v-if="!isPlaying" @submit.prevent="submit" class="absolute">
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
@@ -241,13 +263,13 @@ const draw = () => {
       </div>
     </form>
 
-    <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72 pointer-events-none">
+    <!-- <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72 pointer-events-none">
       <h2 class="text-shadow text-2xl text-white text-center">Scoreboard</h2>
       <ul class="pt-3 grid gap-2">
         <li v-for="player in players" class="bg-[#3E3E3E] rounded-full px-3 border-2 border-black">
           <p class="text-white">{{ player.name }}</p>
         </li>
       </ul>
-    </aside>
+    </aside> -->
   </main>
 </template>

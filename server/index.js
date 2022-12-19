@@ -23,6 +23,7 @@ wsServer.on('connection', (socket, req) => {
         y: json.y,
         angle: json.angle,
         radius: json.radius,
+        health: json.health,
       })
 
       wsServer.clients.forEach((client) => {
@@ -45,14 +46,9 @@ wsServer.on('connection', (socket, req) => {
         socket.close()
       }
 
-      clients.set(socket, {
-        id: metadata.id,
-        name: json.name,
-        x: json.x,
-        y: json.y,
-        angle: json.angle,
-        radius: json.radius,
-      })
+      metadata.x = json.x
+      metadata.y = json.y
+      metadata.angle = json.angle
 
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
@@ -60,14 +56,7 @@ wsServer.on('connection', (socket, req) => {
             client.send(
               JSON.stringify({
                 type: 'moved',
-                player: {
-                  id: metadata.id,
-                  name: json.name,
-                  x: json.x,
-                  y: json.y,
-                  angle: json.angle,
-                  radius: json.radius,
-                },
+                player: metadata,
               }),
             )
           }
@@ -83,14 +72,7 @@ wsServer.on('connection', (socket, req) => {
         socket.close()
       }
 
-      clients.set(socket, {
-        id: metadata.id,
-        name: json.name,
-        x: json.x,
-        y: json.y,
-        angle: json.angle,
-        radius: json.radius,
-      })
+      metadata.angle = json.angle
 
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
@@ -113,20 +95,44 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'shoot') {
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
-          if (client !== socket && client.readyState === Websocket.OPEN) {
-            client.send(
-              JSON.stringify({
-                type: 'shoot',
-                bullet: {
-                  id: json.id,
-                  x: json.x,
-                  y: json.y,
-                  dx: json.dx,
-                  dy: json.dy,
-                },
-              }),
-            )
-          }
+          client.send(
+            JSON.stringify({
+              type: 'shoot',
+              bullet: {
+                id: json.id,
+                playerId: json.playerId,
+                x: json.x,
+                y: json.y,
+                dx: json.dx,
+                dy: json.dy,
+              },
+            }),
+          )
+        }
+      })
+    }
+
+    // Player shot
+    if (json.type === 'shot') {
+      const metadata = clients.get(socket)
+
+      if (!metadata) {
+        socket.close()
+      }
+
+      metadata.health = json.health
+
+      wsServer.clients.forEach((client) => {
+        if (client.readyState === Websocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: 'shot',
+              player: {
+                id: metadata.id,
+                health: json.health,
+              },
+            }),
+          )
         }
       })
     }

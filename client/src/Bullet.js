@@ -1,10 +1,11 @@
 class Bullet {
-  constructor(x, y, dx, dy, id) {
+  constructor(x, y, dx, dy, id, playerId) {
     this.x = x
     this.y = y
     this.dx = dx ?? 0.0
     this.dy = dy ?? 0.0
     this.id = id
+    this.playerId = playerId
     this.radius = 10.0
   }
 
