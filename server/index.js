@@ -44,8 +44,6 @@ wsServer.on('connection', (socket, req) => {
 
       const player = players.get(socket)
 
-      console.log(`player ${player.name} moved to ${player.x}, ${player.y}`)
-
       wsServer.clients.forEach((client) => {
         if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(

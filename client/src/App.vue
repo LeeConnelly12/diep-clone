@@ -21,13 +21,6 @@ let players = []
 
 const isPlaying = ref(false)
 
-const keys = {
-  w: false,
-  a: false,
-  s: false,
-  d: false,
-}
-
 let bullets = []
 
 const mouse = {
@@ -49,10 +42,6 @@ onMounted(() => {
 })
 
 const mouseMove = (e) => {
-  if (!player) {
-    return
-  }
-
   mouse.x = e.clientX
   mouse.y = e.clientY
 
@@ -70,19 +59,15 @@ const mouseMove = (e) => {
 }
 
 const shoot = () => {
-  if (!player) {
-    return
-  }
-
   let x = mouse.x - canvas.value.width / 2
   let y = mouse.y - canvas.value.height / 2
 
-  const l = Math.sqrt(x * x + y * y)
+  const length = Math.sqrt(x * x + y * y)
 
   x = x / l
   y = y / l
 
-  const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0, crypto.randomUUID(), player.id)
+  const bullet = new Bullet(player.x + x * (player.radius * 1.5), player.y + y * (player.radius * 1.5), x * 2.0, y * 2.0, crypto.randomUUID(), player.id)
 
   socket.send(
     JSON.stringify({
@@ -121,8 +106,6 @@ const submit = () => {
       const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
       movedPlayer.y = data.player.y
-
-      // console.log(`player ${movedPlayer.name} moved to ${movedPlayer.x}, ${movedPlayer.y}`)
     } else if (data.type == 'movedMouse') {
       const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
@@ -132,8 +115,6 @@ const submit = () => {
     } else if (data.type === 'shot') {
       const shotPlayer = players.find((player) => player.id === data.player.id)
       shotPlayer.health = data.player.health
-
-      console.log(players)
 
       bullets = bullets.filter((bullet) => bullet.id !== data.bullet.id)
     }
