@@ -4,7 +4,7 @@ import http from 'http'
 
 const wsServer = new WebSocketServer({ noServer: true })
 
-const clients = new Map()
+const players = new Map()
 
 wsServer.on('connection', (socket, req) => {
   socket.on('message', (data) => {
@@ -12,11 +12,7 @@ wsServer.on('connection', (socket, req) => {
 
     // Joined game
     if (json.type === 'joined') {
-      if (!nameIsValid(json.name)) {
-        return
-      }
-
-      clients.set(socket, {
+      players.set(socket, {
         id: json.id,
         name: json.name,
         x: json.x,
@@ -31,7 +27,7 @@ wsServer.on('connection', (socket, req) => {
           client.send(
             JSON.stringify({
               type: 'joined',
-              players: [...clients.values()],
+              players: [...players.values()],
             }),
           )
         }
@@ -40,39 +36,36 @@ wsServer.on('connection', (socket, req) => {
 
     // Moved
     if (json.type === 'moved') {
-      const metadata = clients.get(socket)
+      players.set(socket, {
+        ...players.get(socket),
+        x: json.x,
+        y: json.y,
+      })
 
-      if (!metadata) {
-        socket.close()
-      }
+      const player = players.get(socket)
 
-      metadata.x = json.x
-      metadata.y = json.y
-      metadata.angle = json.angle
+      console.log(`player ${player.name} moved to ${player.x}, ${player.y}`)
 
       wsServer.clients.forEach((client) => {
-        if (client.readyState === Websocket.OPEN) {
-          if (client !== socket && client.readyState === Websocket.OPEN) {
-            client.send(
-              JSON.stringify({
-                type: 'moved',
-                player: metadata,
-              }),
-            )
-          }
+        if (client !== socket && client.readyState === Websocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: 'moved',
+              player: player,
+            }),
+          )
         }
       })
     }
 
     // Moved mouse
     if (json.type === 'mouseMoved') {
-      const metadata = clients.get(socket)
+      players.set(socket, {
+        ...players.get(socket),
+        angle: json.angle,
+      })
 
-      if (!metadata) {
-        socket.close()
-      }
-
-      metadata.angle = json.angle
+      const player = players.get(socket)
 
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
@@ -81,8 +74,8 @@ wsServer.on('connection', (socket, req) => {
               JSON.stringify({
                 type: 'movedMouse',
                 player: {
-                  id: metadata.id,
-                  angle: json.angle,
+                  id: player.id,
+                  angle: player.angle,
                 },
               }),
             )
@@ -114,22 +107,17 @@ wsServer.on('connection', (socket, req) => {
 
     // Player shot
     if (json.type === 'shot') {
-      const metadata = clients.get(socket)
-
-      if (!metadata) {
-        socket.close()
-      }
-
-      metadata.health = json.health
-
       wsServer.clients.forEach((client) => {
         if (client.readyState === Websocket.OPEN) {
           client.send(
             JSON.stringify({
               type: 'shot',
+              bullet: {
+                id: json.bullet.id,
+              },
               player: {
-                id: metadata.id,
-                health: json.health,
+                id: json.player.id,
+                health: json.player.health,
               },
             }),
           )
@@ -139,14 +127,14 @@ wsServer.on('connection', (socket, req) => {
   })
 
   socket.on('close', () => {
-    clients.delete(socket)
+    players.delete(socket)
 
     wsServer.clients.forEach((client) => {
       if (client.readyState === Websocket.OPEN) {
         client.send(
           JSON.stringify({
             type: 'left',
-            players: [...clients.values()],
+            players: [...players.values()],
           }),
         )
       }
@@ -165,15 +153,3 @@ server.on('upgrade', (request, socket, head) => {
 })
 
 server.listen(process.env.PORT)
-
-function nameIsValid(name) {
-  if (name === null) {
-    return false
-  }
-
-  if (/[^a-zA-Z0-9]/.test(name)) {
-    return false
-  }
-
-  return true
-}

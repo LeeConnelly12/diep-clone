@@ -29,45 +29,25 @@ class Player {
 
     if (this.keys['w']) {
       this.y -= 1
-      dispatchEvent(
-        new KeyboardEvent('moved', {
-          bubbles: true,
-          key: 'w',
-        }),
-      )
+      dispatchEvent(new CustomEvent('moved'))
     }
 
     if (this.keys['a']) {
       this.x -= 1
 
-      dispatchEvent(
-        new KeyboardEvent('moved', {
-          bubbles: true,
-          key: 'a',
-        }),
-      )
+      dispatchEvent(new CustomEvent('moved'))
     }
 
     if (this.keys['s']) {
       this.y += 1
 
-      dispatchEvent(
-        new KeyboardEvent('moved', {
-          bubbles: true,
-          key: 's',
-        }),
-      )
+      dispatchEvent(new CustomEvent('moved'))
     }
 
     if (this.keys['d']) {
       this.x += 1
 
-      dispatchEvent(
-        new KeyboardEvent('moved', {
-          bubbles: true,
-          key: 'd',
-        }),
-      )
+      dispatchEvent(new CustomEvent('moved'))
     }
 
     if (this.x < canvas.width / 2) {
@@ -159,6 +139,9 @@ class Player {
     dispatchEvent(
       new CustomEvent('shot', {
         detail: {
+          bullet: {
+            id: bullet.id,
+          },
           player: {
             id: this.id,
             health: this.health - 20,

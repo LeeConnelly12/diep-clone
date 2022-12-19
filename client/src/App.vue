@@ -17,7 +17,7 @@ let camera = new Camera()
 
 let map = new MapRegion()
 
-const players = ref([])
+let players = []
 
 const isPlaying = ref(false)
 
@@ -82,8 +82,6 @@ const shoot = () => {
   x = x / l
   y = y / l
 
-  // Issue is player has wrong x and y, still at spawn, should be updated
-
   const bullet = new Bullet(player.x, player.y, x * 3.0, y * 3.0, crypto.randomUUID(), player.id)
 
   socket.send(
@@ -112,27 +110,32 @@ const submit = () => {
     const data = JSON.parse(event.data)
 
     if (data.type === 'joined') {
-      players.value = data.players.map((player) => {
+      players = data.players.map((player) => {
         return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
       })
     } else if (data.type === 'left') {
-      players.value = data.players.map((player) => {
+      players = data.players.map((player) => {
         return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
       })
     } else if (data.type === 'moved') {
-      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
       movedPlayer.y = data.player.y
+
+      // console.log(`player ${movedPlayer.name} moved to ${movedPlayer.x}, ${movedPlayer.y}`)
     } else if (data.type == 'movedMouse') {
-      const movedPlayer = players.value.find((player) => player.id === data.player.id)
+      const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
     } else if (data.type === 'shoot') {
       const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId)
       bullets.push(bullet)
     } else if (data.type === 'shot') {
-      const shotPlayer = players.value.find((player) => player.id === data.player.id)
-      console.log(`player with id ${shotPlayer.id} was shot`)
+      const shotPlayer = players.find((player) => player.id === data.player.id)
       shotPlayer.health = data.player.health
+
+      console.log(players)
+
+      bullets = bullets.filter((bullet) => bullet.id !== data.bullet.id)
     }
   })
 
@@ -150,12 +153,15 @@ const submit = () => {
   )
 
   window.addEventListener('moved', function (event) {
+    const p = players.find((currentPlayer) => currentPlayer.id === player.id)
+    p.x = player.x
+    p.y = player.y
+
     socket.send(
       JSON.stringify({
         type: 'moved',
         x: player.x,
         y: player.y,
-        angle: player.angle,
       }),
     )
   })
@@ -164,8 +170,13 @@ const submit = () => {
     socket.send(
       JSON.stringify({
         type: 'shot',
-        id: event.detail.player.id,
-        health: event.detail.player.health,
+        bullet: {
+          id: event.detail.bullet.id,
+        },
+        player: {
+          id: event.detail.player.id,
+          health: event.detail.player.health,
+        },
       }),
     )
   })
@@ -215,7 +226,7 @@ const draw = () => {
       radius: currentBullet.radius,
     }
 
-    players.value
+    players
       .filter((currentPlayer) => currentPlayer.id !== currentBullet.playerId)
       .forEach((currentPlayer) => {
         const circle2 = {
@@ -225,26 +236,25 @@ const draw = () => {
         }
 
         if (collideCircle(circle1, circle2)) {
-          console.log('Bullet collided with player')
           currentPlayer.shot(currentBullet)
-          // bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
+          bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
         }
       })
   })
 
   bullets.forEach((bullet) => bullet.render(ctx))
 
-  // if (player.health < 100) {
-  //   player.renderHealthBar(ctx)
-  // }
+  if (player.health < 100) {
+    player.renderHealthBar(ctx)
+  }
   player.render(ctx)
 
-  players.value
+  players
     .filter((otherPlayer) => otherPlayer.id !== player.id)
     .forEach((otherPlayer) => {
       otherPlayer.render(ctx)
       otherPlayer.renderName(ctx)
-      // otherPlayer.renderHealthBar(ctx)
+      otherPlayer.renderHealthBar(ctx)
     })
 
   requestAnimationFrame(draw)
