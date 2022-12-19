@@ -21,6 +21,8 @@ let players = []
 
 const isPlaying = ref(false)
 
+let gameOver = false
+
 let bullets = []
 
 const mouse = {
@@ -231,10 +233,23 @@ const draw = () => {
   if (player.health < 100) {
     player.renderHealthBar(ctx)
   }
+
   player.render(ctx)
 
   players
-    .filter((otherPlayer) => otherPlayer.id !== player.id)
+    .filter((otherPlayer) => {
+      // Don't render the current player
+      if (otherPlayer.id === player.id) {
+        return false
+      }
+
+      // Don't render players that are dead
+      if (otherPlayer.isDead()) {
+        return false
+      }
+
+      return true
+    })
     .forEach((otherPlayer) => {
       otherPlayer.render(ctx)
       otherPlayer.renderName(ctx)

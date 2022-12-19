@@ -25,6 +25,10 @@ class Player {
   }
 
   tick(mouseX, mouseY, map, canvas) {
+    if (this.isDead()) {
+      return
+    }
+
     this.angle = Math.atan2(mouseY - canvas.height / 2, mouseX - canvas.width / 2)
 
     if (this.keys['w']) {
@@ -64,6 +68,10 @@ class Player {
   }
 
   render(ctx) {
+    if (this.isDead()) {
+      return
+    }
+
     // Cannon
     ctx.save()
     ctx.translate(this.x, this.y)
@@ -86,6 +94,10 @@ class Player {
   }
 
   renderName(ctx) {
+    if (this.isDead()) {
+      return
+    }
+
     // Player name
     ctx.fillStyle = 'white'
     ctx.strokeStyle = 'black'
@@ -97,6 +109,10 @@ class Player {
   }
 
   renderHealthBar(ctx) {
+    if (this.isDead()) {
+      return
+    }
+
     // Player health
     ctx.fillStyle = '#85E37D'
     ctx.strokeStyle = '#555555'
@@ -151,6 +167,10 @@ class Player {
         },
       }),
     )
+  }
+
+  isDead() {
+    return this.health <= 0
   }
 }
 
