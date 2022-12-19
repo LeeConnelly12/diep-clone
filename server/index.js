@@ -106,7 +106,7 @@ wsServer.on('connection', (socket, req) => {
     // Player shot
     if (json.type === 'shot') {
       wsServer.clients.forEach((client) => {
-        if (client.readyState === Websocket.OPEN) {
+        if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(
             JSON.stringify({
               type: 'shot',

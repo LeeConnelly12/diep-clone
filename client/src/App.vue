@@ -62,7 +62,7 @@ const shoot = () => {
   let x = mouse.x - canvas.value.width / 2
   let y = mouse.y - canvas.value.height / 2
 
-  const length = Math.sqrt(x * x + y * y)
+  const l = Math.sqrt(x * x + y * y)
 
   x = x / l
   y = y / l
@@ -113,8 +113,12 @@ const submit = () => {
       const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId)
       bullets.push(bullet)
     } else if (data.type === 'shot') {
-      const shotPlayer = players.find((player) => player.id === data.player.id)
-      shotPlayer.health = data.player.health
+      if (data.player.id === player.id) {
+        player.health = data.player.health
+      } else {
+        const shotPlayer = players.find((player) => player.id === data.player.id)
+        shotPlayer.health = data.player.health
+      }
 
       bullets = bullets.filter((bullet) => bullet.id !== data.bullet.id)
     }
@@ -218,7 +222,6 @@ const draw = () => {
 
         if (collideCircle(circle1, circle2)) {
           currentPlayer.shot(currentBullet)
-          bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
         }
       })
   })

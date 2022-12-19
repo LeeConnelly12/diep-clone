@@ -136,6 +136,8 @@ class Player {
   }
 
   shot(bullet) {
+    this.health -= 20
+
     dispatchEvent(
       new CustomEvent('shot', {
         detail: {
@@ -144,7 +146,7 @@ class Player {
           },
           player: {
             id: this.id,
-            health: this.health - 20,
+            health: this.health,
           },
         },
       }),
