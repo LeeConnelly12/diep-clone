@@ -7,8 +7,8 @@ import fs from 'fs'
 dotenv.config()
 
 const server = createServer({
-  key: fs.readFileSync(process.env.ssl_cert_path),
-  cert: fs.readFileSync(process.env.ssl_key_path),
+  key: fs.readFileSync(process.env.SSL_CERT_PATH),
+  cert: fs.readFileSync(process.env.SSL_KEY_PATH),
 })
 
 const wsServer = new WebSocketServer({ server: server })
