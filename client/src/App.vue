@@ -59,6 +59,10 @@ const mouseMove = (e) => {
 }
 
 const shoot = () => {
+  if (player.isDead()) {
+    return
+  }
+
   let x = mouse.x - canvas.value.width / 2
   let y = mouse.y - canvas.value.height / 2
 
