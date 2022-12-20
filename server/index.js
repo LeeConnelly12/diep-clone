@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 import Websocket, { WebSocketServer } from 'ws'
-import { createServer } from 'http'
+import { createServer } from 'https'
 import fs from 'fs'
 
 dotenv.config()
