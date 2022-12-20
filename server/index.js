@@ -134,6 +134,21 @@ wsServer.on('connection', (socket, req) => {
       })
     }
   })
+
+  socket.on('close', () => {
+    players.delete(socket)
+
+    wsServer.clients.forEach((client) => {
+      if (client.readyState === Websocket.OPEN) {
+        client.send(
+          JSON.stringify({
+            type: 'left',
+            players: [...players.values()],
+          }),
+        )
+      }
+    })
+  })
 })
 
 server.listen(port, hostname, () => {
