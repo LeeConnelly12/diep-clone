@@ -247,6 +247,7 @@ const draw = () => {
 
         if (collideCircle(circle1, circle2)) {
           currentPlayer.shot(currentBullet)
+          bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
         }
       })
   })
