@@ -23,6 +23,8 @@ const isPlaying = ref(false)
 
 let bullets = []
 
+let gameIsOver = ref(false)
+
 const mouse = {
   x: null,
   y: null,
@@ -82,6 +84,25 @@ const shoot = () => {
       y: bullet.y,
       dx: bullet.dx,
       dy: bullet.dy,
+    }),
+  )
+}
+
+const restartGame = () => {
+  player = new Player(map.w / 2, map.h / 2, player.name, crypto.randomUUID())
+
+  gameIsOver.value = false
+
+  socket.send(
+    JSON.stringify({
+      type: 'joined',
+      id: player.id,
+      name: player.name,
+      x: player.x,
+      y: player.y,
+      angle: player.angle,
+      radius: player.radius,
+      health: player.health,
     }),
   )
 }
@@ -258,6 +279,12 @@ const draw = () => {
       otherPlayer.renderHealthBar(ctx)
     })
 
+  if (player.isDead()) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+    ctx.fillRect(0, 0, map.w, map.h)
+    gameIsOver.value = true
+  }
+
   requestAnimationFrame(draw)
 }
 </script>
@@ -270,9 +297,13 @@ const draw = () => {
       <p class="text-shadow text-center text-2xl text-white">This is the tale of...</p>
       <div class="mt-1 flex gap-2">
         <input v-model="form.name" type="text" required pattern="[a-zA-Z0-9]+" class="h-14 w-80 border-4 border-black bg-white text-5xl" />
-        <button class="text-shadow h-14 w-24 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Play</button>
+        <button class="text-shadow h-14 px-6 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Play</button>
       </div>
     </form>
+
+    <div v-if="gameIsOver" class="absolute w-full h-full grid place-items-center">
+      <button @click.stop="restartGame" class="text-shadow h-14 px-4 border-4 border-[#555555] bg-[#8EFFFB] text-2xl text-white">Continue</button>
+    </div>
 
     <!-- <aside v-if="players && players.length > 0" class="absolute top-4 right-6 w-56 h-72 pointer-events-none">
       <h2 class="text-shadow text-2xl text-white text-center">Scoreboard</h2>
