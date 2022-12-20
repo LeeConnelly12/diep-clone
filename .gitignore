@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env
+
+server/security/*
+!server/security/req.cnf

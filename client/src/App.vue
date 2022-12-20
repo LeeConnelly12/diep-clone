@@ -21,8 +21,6 @@ let players = []
 
 const isPlaying = ref(false)
 
-let gameOver = false
-
 let bullets = []
 
 const mouse = {

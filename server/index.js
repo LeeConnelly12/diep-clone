@@ -1,9 +1,12 @@
-import dotenv from 'dotenv'
-import Websocket, { WebSocketServer } from 'ws'
 import { createServer } from 'https'
 import fs from 'fs'
+import dotenv from 'dotenv'
+import Websocket, { WebSocketServer } from 'ws'
 
 dotenv.config()
+
+const hostname = process.env.HOSTNAME
+const port = process.env.PORT
 
 const server = createServer({
   key: fs.readFileSync(process.env.SSL_KEY_PATH),
@@ -131,21 +134,8 @@ wsServer.on('connection', (socket, req) => {
       })
     }
   })
-
-  socket.on('close', () => {
-    players.delete(socket)
-
-    wsServer.clients.forEach((client) => {
-      if (client.readyState === Websocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: 'left',
-            players: [...players.values()],
-          }),
-        )
-      }
-    })
-  })
 })
 
-server.listen(process.env.PORT)
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
+})
