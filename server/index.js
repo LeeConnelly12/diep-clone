@@ -1,8 +1,17 @@
 import dotenv from 'dotenv'
 import Websocket, { WebSocketServer } from 'ws'
 import http from 'http'
+import { createServer } from 'https'
+import fs from 'fs'
 
-const wsServer = new WebSocketServer({ noServer: true })
+dotenv.config()
+
+const server = createServer({
+  key: fs.readFileSync(process.env.ssl_cert_path),
+  cert: fs.readFileSync(process.env.ssl_key_path),
+})
+
+const wsServer = new WebSocketServer({ server: server })
 
 const players = new Map()
 
@@ -140,14 +149,10 @@ wsServer.on('connection', (socket, req) => {
   })
 })
 
-dotenv.config()
-
-const server = http.createServer()
-
-server.on('upgrade', (request, socket, head) => {
-  wsServer.handleUpgrade(request, socket, head, (socket) => {
-    wsServer.emit('connection', socket, request)
-  })
-})
+// server.on('upgrade', (request, socket, head) => {
+//   wsServer.handleUpgrade(request, socket, head, (socket) => {
+//     wsServer.emit('connection', socket, request)
+//   })
+// })
 
 server.listen(process.env.PORT)
