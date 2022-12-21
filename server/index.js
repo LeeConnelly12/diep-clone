@@ -74,6 +74,10 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'bulletMoved') {
       const bullet = bullets.find((bullet) => bullet.id === json.bullet.id)
 
+      if (!bullet) {
+        return
+      }
+
       // Destroy bullet after 5 seconds
       const seconds = Math.floor((Date.now() - bullet.shotAt) / 1000)
       if (seconds >= 5) {
