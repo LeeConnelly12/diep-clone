@@ -17,7 +17,7 @@ const wsServer = new WebSocketServer({ server: server })
 
 const players = new Map()
 
-const bullets = []
+let bullets = []
 
 wsServer.on('connection', (socket, req) => {
   socket.on('message', (data) => {
@@ -74,6 +74,25 @@ wsServer.on('connection', (socket, req) => {
     if (json.type === 'bulletMoved') {
       const bullet = bullets.find((bullet) => bullet.id === json.bullet.id)
 
+      // Destroy bullet after 5 seconds
+      const seconds = Math.floor((Date.now() - bullet.shotAt) / 1000)
+      if (seconds >= 5) {
+        bullets = bullets.filter((currentBullet) => currentBullet.id !== bullet.id)
+
+        wsServer.clients.forEach((client) => {
+          if (client.readyState === Websocket.OPEN) {
+            client.send(
+              JSON.stringify({
+                type: 'bulletExpired',
+                bullets: bullets,
+              }),
+            )
+          }
+        })
+
+        return
+      }
+
       bullet.x += bullet.dx
       bullet.y += bullet.dy
 
@@ -86,6 +105,7 @@ wsServer.on('connection', (socket, req) => {
                 id: bullet.id,
                 x: bullet.x,
                 y: bullet.y,
+                shotAt: bullet.shotAt,
               },
             }),
           )
@@ -121,28 +141,24 @@ wsServer.on('connection', (socket, req) => {
 
     // Bullet shot
     if (json.type === 'shoot') {
-      bullets.push({
+      const bullet = {
         id: json.id,
         playerId: json.playerId,
         x: json.x,
         y: json.y,
         dx: json.dx,
         dy: json.dy,
-      })
+        shotAt: Date.now(),
+      }
+
+      bullets.push(bullet)
 
       wsServer.clients.forEach((client) => {
         if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(
             JSON.stringify({
               type: 'shoot',
-              bullet: {
-                id: json.id,
-                playerId: json.playerId,
-                x: json.x,
-                y: json.y,
-                dx: json.dx,
-                dy: json.dy,
-              },
+              bullet: bullet,
             }),
           )
         }

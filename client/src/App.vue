@@ -73,7 +73,7 @@ const shoot = () => {
   x = x / l
   y = y / l
 
-  const bullet = new Bullet(player.x + x * (player.radius * 1.5), player.y + y * (player.radius * 1.5), x * 1.0, y * 1.0, crypto.randomUUID(), player.id)
+  const bullet = new Bullet(player.x + x * (player.radius * 1.5), player.y + y * (player.radius * 1.5), x * 1.0, y * 1.0, crypto.randomUUID(), player.id, Date.now())
 
   socket.send(
     JSON.stringify({
@@ -144,11 +144,15 @@ const submit = () => {
         bullet.x = data.bullet.x
         bullet.y = data.bullet.y
       }
+    } else if (data.type === 'bulletExpired') {
+      bullets = data.bullets.map((bullet) => {
+        return new Bullet(bullet.x, bullet.y, bullet.dx, bullet.dy, bullet.id, bullet.playerId, bullet.shotAt)
+      })
     } else if (data.type == 'movedMouse') {
       const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
     } else if (data.type === 'shoot') {
-      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId)
+      const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId, data.bullet.shotAt)
       bullets.push(bullet)
     } else if (data.type === 'shot') {
       const shotPlayer = players.find((player) => player.id === data.player.id)
@@ -254,6 +258,16 @@ const draw = () => {
     const bulletBelongsToPlayer = bullet.playerId === player.id
 
     if (bulletBelongsToPlayer) {
+      dispatchEvent(
+        new CustomEvent('bulletMoved', {
+          detail: {
+            bullet: {
+              id: bullet.id,
+            },
+          },
+        }),
+      )
+
       return
     }
 

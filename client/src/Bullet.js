@@ -1,27 +1,18 @@
 class Bullet {
-  constructor(x, y, dx, dy, id, playerId) {
+  constructor(x, y, dx, dy, id, playerId, shotAt) {
     this.x = x
     this.y = y
     this.dx = dx ?? 0.0
     this.dy = dy ?? 0.0
     this.id = id
     this.playerId = playerId
+    this.shotAt = shotAt
     this.radius = 10.0
   }
 
   tick() {
     this.x += this.dx
     this.y += this.dy
-
-    dispatchEvent(
-      new CustomEvent('bulletMoved', {
-        detail: {
-          bullet: {
-            id: this.id,
-          },
-        },
-      }),
-    )
   }
 
   render(ctx) {
