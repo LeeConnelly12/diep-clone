@@ -30,7 +30,7 @@ wsServer.on('connection', (socket, req) => {
         y: json.y,
         angle: json.angle,
         radius: json.radius,
-        health: json.health,
+        health: 100,
       })
 
       wsServer.clients.forEach((client) => {
@@ -116,6 +116,13 @@ wsServer.on('connection', (socket, req) => {
 
     // Player shot
     if (json.type === 'shot') {
+      players.set(socket, {
+        ...players.get(socket),
+        health: players.get(socket).health - 20,
+      })
+
+      const player = players.get(socket)
+
       wsServer.clients.forEach((client) => {
         if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(
@@ -126,7 +133,7 @@ wsServer.on('connection', (socket, req) => {
               },
               player: {
                 id: json.player.id,
-                health: json.player.health,
+                health: player.health,
               },
             }),
           )

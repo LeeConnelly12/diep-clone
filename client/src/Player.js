@@ -162,7 +162,6 @@ class Player {
           },
           player: {
             id: this.id,
-            health: this.health,
           },
         },
       }),

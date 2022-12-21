@@ -138,12 +138,10 @@ const submit = () => {
       const bullet = new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, data.bullet.id, data.bullet.playerId)
       bullets.push(bullet)
     } else if (data.type === 'shot') {
-      if (data.player.id === player.id) {
-        player.health = data.player.health
-      } else {
-        const shotPlayer = players.find((player) => player.id === data.player.id)
-        shotPlayer.health = data.player.health
-      }
+      const shotPlayer = players.find((player) => player.id === data.player.id)
+      shotPlayer.health = data.player.health
+
+      console.log(data.player.health)
 
       bullets = bullets.filter((bullet) => bullet.id !== data.bullet.id)
     }
@@ -185,7 +183,6 @@ const submit = () => {
         },
         player: {
           id: event.detail.player.id,
-          health: event.detail.player.health,
         },
       }),
     )
@@ -227,29 +224,31 @@ const draw = () => {
 
   map.render(ctx)
 
-  bullets.forEach((currentBullet) => {
-    currentBullet.tick()
+  bullets.forEach((bullet) => {
+    bullet.tick()
 
-    const circle1 = {
-      x: currentBullet.x,
-      y: currentBullet.y,
-      radius: currentBullet.radius,
+    const bulletBelongsToPlayer = bullet.playerId === player.id
+
+    if (bulletBelongsToPlayer) {
+      return
     }
 
-    players
-      .filter((currentPlayer) => currentPlayer.id !== currentBullet.playerId)
-      .forEach((currentPlayer) => {
-        const circle2 = {
-          x: currentPlayer.x,
-          y: currentPlayer.y,
-          radius: currentPlayer.radius,
-        }
+    const circle1 = {
+      x: bullet.x,
+      y: bullet.y,
+      radius: bullet.radius,
+    }
 
-        if (collideCircle(circle1, circle2)) {
-          currentPlayer.shot(currentBullet)
-          bullets = bullets.filter((bullet) => bullet.id !== currentBullet.id)
-        }
-      })
+    const circle2 = {
+      x: player.x,
+      y: player.y,
+      radius: player.radius,
+    }
+
+    if (collideCircle(circle1, circle2)) {
+      player.shot(bullet)
+      bullets = bullets.filter((currentBullet) => currentBullet.id !== bullet.id)
+    }
   })
 
   bullets.forEach((bullet) => bullet.render(ctx))
