@@ -17,6 +17,8 @@ const wsServer = new WebSocketServer({ server: server })
 
 const players = new Map()
 
+const bullets = []
+
 wsServer.on('connection', (socket, req) => {
   socket.on('message', (data) => {
     const json = JSON.parse(data)
@@ -39,6 +41,7 @@ wsServer.on('connection', (socket, req) => {
             JSON.stringify({
               type: 'joined',
               players: [...players.values()],
+              bullets: bullets,
             }),
           )
         }
@@ -61,6 +64,29 @@ wsServer.on('connection', (socket, req) => {
             JSON.stringify({
               type: 'moved',
               player: player,
+            }),
+          )
+        }
+      })
+    }
+
+    // Bullet moved
+    if (json.type === 'bulletMoved') {
+      const bullet = bullets.find((bullet) => bullet.id === json.bullet.id)
+
+      bullet.x += bullet.dx
+      bullet.y += bullet.dy
+
+      wsServer.clients.forEach((client) => {
+        if (client !== socket && client.readyState === Websocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: 'bulletMoved',
+              bullet: {
+                id: bullet.id,
+                x: bullet.x,
+                y: bullet.y,
+              },
             }),
           )
         }
@@ -95,6 +121,15 @@ wsServer.on('connection', (socket, req) => {
 
     // Bullet shot
     if (json.type === 'shoot') {
+      bullets.push({
+        id: json.id,
+        playerId: json.playerId,
+        x: json.x,
+        y: json.y,
+        dx: json.dx,
+        dy: json.dy,
+      })
+
       wsServer.clients.forEach((client) => {
         if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(

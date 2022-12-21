@@ -73,7 +73,7 @@ const shoot = () => {
   x = x / l
   y = y / l
 
-  const bullet = new Bullet(player.x + x * (player.radius * 1.5), player.y + y * (player.radius * 1.5), x * 2.0, y * 2.0, crypto.randomUUID(), player.id)
+  const bullet = new Bullet(player.x + x * (player.radius * 1.5), player.y + y * (player.radius * 1.5), x * 1.0, y * 1.0, crypto.randomUUID(), player.id)
 
   socket.send(
     JSON.stringify({
@@ -125,6 +125,10 @@ const submit = () => {
       players = data.players.map((player) => {
         return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
       })
+
+      bullets = data.bullets.map((bullet) => {
+        return new Bullet(bullet.x, bullet.y, bullet.dx, bullet.dy, bullet.id, bullet.playerId)
+      })
     } else if (data.type === 'left') {
       players = data.players.map((player) => {
         return new Player(player.x, player.y, player.name, player.id, player.angle, player.radius, player.health)
@@ -133,6 +137,13 @@ const submit = () => {
       const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.x = data.player.x
       movedPlayer.y = data.player.y
+    } else if (data.type === 'bulletMoved') {
+      const bullet = bullets.find((bullet) => bullet.id === data.bullet.id)
+
+      if (bullet) {
+        bullet.x = data.bullet.x
+        bullet.y = data.bullet.y
+      }
     } else if (data.type == 'movedMouse') {
       const movedPlayer = players.find((player) => player.id === data.player.id)
       movedPlayer.angle = data.player.angle
@@ -172,6 +183,17 @@ const submit = () => {
         type: 'moved',
         x: player.x,
         y: player.y,
+      }),
+    )
+  })
+
+  window.addEventListener('bulletMoved', function (event) {
+    socket.send(
+      JSON.stringify({
+        type: 'bulletMoved',
+        bullet: {
+          id: event.detail.bullet.id,
+        },
       }),
     )
   })

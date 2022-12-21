@@ -12,6 +12,16 @@ class Bullet {
   tick() {
     this.x += this.dx
     this.y += this.dy
+
+    dispatchEvent(
+      new CustomEvent('bulletMoved', {
+        detail: {
+          bullet: {
+            id: this.id,
+          },
+        },
+      }),
+    )
   }
 
   render(ctx) {
