@@ -96,7 +96,7 @@ wsServer.on('connection', (socket, req) => {
     // Bullet shot
     if (json.type === 'shoot') {
       wsServer.clients.forEach((client) => {
-        if (client.readyState === Websocket.OPEN) {
+        if (client !== socket && client.readyState === Websocket.OPEN) {
           client.send(
             JSON.stringify({
               type: 'shoot',

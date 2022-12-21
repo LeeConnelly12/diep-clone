@@ -86,6 +86,8 @@ const shoot = () => {
       dy: bullet.dy,
     }),
   )
+
+  bullets.push(bullet)
 }
 
 const restartGame = () => {
