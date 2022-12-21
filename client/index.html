@@ -5,9 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Diep Clone</title>
-  </head>
-  <body>
-    <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body class="grid min-h-screen place-items-center antialiased">
+    <canvas id="canvas"></canvas>
+
+    <form class="absolute" id="form">
+      <h1>This is the tale of...</h1>
+      <input class="border-2 border-black" type="text" name="name" id="" autocomplete="username" autofocus />
+      <button>Play</button>
+    </form>
   </body>
 </html>
