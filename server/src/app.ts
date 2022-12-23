@@ -14,6 +14,18 @@ const io = new Server(port, {
   },
 })
 
+const clients = new Map()
+
 io.on('connection', (socket) => {
-  console.log('user connected')
+  socket.on('joined', (data) => {
+    clients.set(socket, {
+      id: socket.id,
+      name: data.name,
+    })
+
+    socket.broadcast.emit('joined', {
+      id: socket.id,
+      name: data.name,
+    })
+  })
 })
