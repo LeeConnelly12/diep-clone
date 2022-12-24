@@ -3,7 +3,11 @@ import Player from '@/classes/Player'
 import { canvas, ctx, roundRect } from '@/utilities/Canvas'
 
 class Scoreboard {
-  constructor(public players: Player[] = [], private x: number = canvas.width - 220, private y: number = 40) {}
+  constructor(
+    public players: Player[] = [],
+    private x: number = canvas.width - 220,
+    private y: number = 40,
+  ) {}
 
   public draw() {
     ctx.save()

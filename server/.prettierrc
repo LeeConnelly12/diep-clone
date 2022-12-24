@@ -4,6 +4,5 @@
   "tabWidth": 2,
   "trailingComma": "all",
   "arrowParens": "always",
-  "htmlWhitespaceSensitivity": "css",
-  "printWidth": 10000
+  "htmlWhitespaceSensitivity": "css"
 }

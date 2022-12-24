@@ -21,7 +21,14 @@ const drawCanvas = () => {
   ctx.stroke()
 }
 
-const roundRect = (x0: number, y0: number, x1: number, y1: number, r: number, color: string) => {
+const roundRect = (
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  r: number,
+  color: string,
+) => {
   const w = x1 - x0
   const h = y1 - y0
   if (r > w / 2) r = w / 2
