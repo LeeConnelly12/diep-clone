@@ -23,9 +23,19 @@ io.on('connection', (socket) => {
       name: data.name,
     })
 
+    io.to(socket.id).emit('players', [...clients.values()])
+
     socket.broadcast.emit('joined', {
       id: socket.id,
       name: data.name,
     })
+  })
+
+  socket.on('disconnect', () => {
+    const client = clients.get(socket)
+
+    socket.broadcast.emit('left', client)
+
+    clients.delete(socket)
   })
 })
