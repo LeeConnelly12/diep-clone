@@ -1,6 +1,8 @@
-const canvas = <HTMLCanvasElement>document.getElementById('canvas')
+const canvas = <HTMLCanvasElement | null>document.getElementById('canvas')
+if (!canvas) throw new Error('Canvas not found')
 
-const ctx = <CanvasRenderingContext2D>canvas.getContext('2d')
+const ctx = <CanvasRenderingContext2D | null>canvas.getContext('2d')
+if (!ctx) throw new Error('CTX not found')
 
 const drawCanvas = () => {
   ctx.fillStyle = '#CDCDCD'
