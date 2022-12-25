@@ -1,6 +1,6 @@
 import Socket from '@/utilities/Socket'
 import Player from '@/classes/Player'
-import { canvas, ctx, roundRect } from '@/utilities/Canvas'
+import { canvas, ctx } from '@/utilities/Canvas'
 
 class Scoreboard {
   constructor(
