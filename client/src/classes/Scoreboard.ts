@@ -1,13 +1,19 @@
 import Socket from '@/utilities/Socket'
 import Player from '@/classes/Player'
 import { canvas, ctx } from '@/utilities/Canvas'
+import Camera from '@/classes/Camera'
 
 class Scoreboard {
   constructor(
     public players: Player[] = [],
-    private x: number = canvas.width - 220,
-    private y: number = 40,
+    private x: number = 0,
+    private y: number = 0,
   ) {}
+
+  public tick(camera: Camera) {
+    this.x = camera.x + canvas.width - 220
+    this.y = camera.y + 40
+  }
 
   public draw() {
     ctx.save()

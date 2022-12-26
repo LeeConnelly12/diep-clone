@@ -35,8 +35,6 @@ class Game {
   private draw() {
     ctx.resetTransform()
 
-    this.scoreboard.draw()
-
     this.player.tick(this.mouse.x, this.mouse.y, this.map)
 
     this.camera.focus(this.map, this.player)
@@ -46,6 +44,9 @@ class Game {
     this.map.draw()
 
     this.player.draw()
+
+    this.scoreboard.tick(this.camera)
+    this.scoreboard.draw()
 
     requestAnimationFrame(() => this.draw())
   }
