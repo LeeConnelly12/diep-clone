@@ -24,12 +24,7 @@ form.addEventListener('submit', (event) => {
     name: name,
   })
 
-  const player = new Player(
-    Socket.id,
-    name,
-    canvas.width / 2,
-    canvas.height / 2,
-  )
+  const player = new Player(Socket.id, name)
 
   const game = new Game(player)
 

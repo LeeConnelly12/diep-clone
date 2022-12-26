@@ -2,25 +2,6 @@ const canvas = <HTMLCanvasElement>document.getElementById('canvas')
 
 const ctx = <CanvasRenderingContext2D>canvas.getContext('2d')
 
-const drawCanvas = () => {
-  ctx.fillStyle = '#CDCDCD'
-  ctx.strokeStyle = '#C9C9C9'
-  ctx.lineWidth = 2
-
-  for (let x = 0; x <= canvas.width; x += 30) {
-    ctx.moveTo(x, 0)
-    ctx.lineTo(x, canvas.height)
-  }
-
-  for (let y = 0; y <= canvas.height; y += 30) {
-    ctx.moveTo(0, y)
-    ctx.lineTo(canvas.width, y)
-  }
-
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.stroke()
-}
-
 const roundRect = (
   x0: number,
   y0: number,
@@ -47,4 +28,4 @@ const roundRect = (
   ctx.fill()
 }
 
-export { canvas, ctx, drawCanvas, roundRect }
+export { canvas, ctx, roundRect }
